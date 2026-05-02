@@ -41,14 +41,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Appends a message to the chat window.
-     * SECURITY: We use textContent instead of innerHTML to completely block XSS attacks.
      */
     function appendMessage(text, sender, isLoading = false) {
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('message', `${sender}-message`);
 
-        // Handle basic formatting for readability
-        msgDiv.textContent = text;
+        if (sender === 'bot' && !isLoading) {
+            // Apply our custom Zero-Bloat Markdown Parser for AI responses
+            msgDiv.innerHTML = formatMarkdown(text);
+        } else {
+            // SECURITY: Strict textContent for user input to guarantee zero XSS vulnerabilities
+            msgDiv.textContent = text;
+        }
 
         if (isLoading) {
             msgDiv.id = 'loading-msg';
@@ -68,5 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!id) return;
         const el = document.getElementById(id);
         if (el) el.remove();
+    }
+
+    /**
+     * Efficiency & Security: A zero-dependency markdown parser.
+     * Safely converts AI markdown to HTML without needing heavy external libraries.
+     */
+    function formatMarkdown(text) {
+        // 1. Escape raw HTML brackets to protect against injections
+        let html = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        // 2. Parse Markdown Links: [text](url)
+        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: bold;">$1</a>');
+
+        // 3. Parse Markdown Bold: **text**
+        html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+        // 4. Parse Bullet Points (* or -)
+        html = html.replace(/(?:^|\n)\s*[\*\-]\s+(.*)/g, "<br><span style='margin-left: 10px;'>• $1</span>");
+
+        // 5. Convert remaining line breaks
+        html = html.replace(/\n/g, "<br>");
+
+        // Clean up any leading breaks for a clean UI
+        if (html.startsWith("<br>")) html = html.substring(4);
+
+        return html;
     }
 });

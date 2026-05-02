@@ -12,9 +12,11 @@ const electionKeywords = [
 
 export function isElectionQuery(query) {
     if (!query || typeof query !== 'string') return false;
-
-    const normalizedQuery = query.toLowerCase();
-
-    // Check if the query contains at least one relevant keyword
-    return electionKeywords.some(keyword => normalizedQuery.includes(keyword));
+    
+    // Using RegExp with \b (word boundaries) ensures we only match whole words.
+    // This stops "recipe" from triggering the "eci" keyword!
+    return electionKeywords.some(keyword => {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        return regex.test(query);
+    });
 }

@@ -6,7 +6,7 @@
 
 export async function fetchElectionData(userMessage, apiKey) {
     // Using the latest 2026 Gemini endpoint for fast, logical decision making
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     // Contextual System Prompt - This satisfies the "Logical decision making based on user context" criteria
     const systemInstruction = `
